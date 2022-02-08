@@ -1,0 +1,46 @@
+name: Operations Repo Deployment
+description: "Deploy a BitOps Operations Repo"
+
+inputs:
+  org:
+    description: Ops repo org
+    required: true
+  repo:
+    description: Ops repo
+    required: true
+  branch:
+    description: Branch in the ops repo to deploy
+    required: true
+  workflow:
+    description: Name of the ops repo workflow to trigger and wait for
+    required: true
+  poll-interval-seconds:
+    description: Duration between polls of the ops repo pipeline status
+    required: false
+    default: 3
+  poll-timeout-seconds:
+    description: How long before the polling times out
+    required: false
+    default: 600
+  github-token:
+    description: Token for the ops repo. Required if ops repo is private
+    required: false
+runs:
+  using: "composite"
+  steps:
+  # https://github.com/actions/github-script
+  # https://octokit.github.io/rest.js/v18#actions-create-workflow-dispatch
+  # https://stackoverflow.com/questions/69479400/get-run-id-after-triggering-a-github-workflow-dispatch-event
+  - uses: actions/github-script@v5
+    env:
+      OPERATIONS_REPO_ORG: ${{ inputs.org }}
+      OPERATIONS_REPO: ${{ inputs.repo }}
+      OPERATIONS_REPO_BRANCH: ${{ inputs.branch }}
+      OPERATIONS_REPO_WORKFLOW: ${{ inputs.workflow }}
+      POLL_INTERVAL_SECONDS: ${{ inputs.poll-interval-seconds }}
+      POLL_TIMEOUT_SECONDS: ${{ inputs.poll-timeout-seconds }}
+    with:
+      github-token: ${{ inputs.github-token }}
+      script: |
+        const script = require('./deploy.js')
+        console.log(script({github,context}))
