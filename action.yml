@@ -25,6 +25,10 @@ inputs:
   github-token:
     description: Token for the ops repo. Required if ops repo is private
     required: false
+  skip-pr-deploy:
+    description: Set to non-empty (i.e. '1') to skip PR deployment to run on PRs)
+    required: false
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -39,6 +43,7 @@ runs:
       OPERATIONS_REPO_WORKFLOW: ${{ inputs.workflow }}
       POLL_INTERVAL_SECONDS: ${{ inputs.poll-interval-seconds }}
       POLL_TIMEOUT_SECONDS: ${{ inputs.poll-timeout-seconds }}
+      SKIP_PR_DEPLOY: ${{ inputs.skip-pr-deploy }}
     with:
       github-token: ${{ inputs.github-token }}
       script: |
@@ -130,7 +135,7 @@ runs:
         }
 
         // TODO: figure out how to do this in github actions 'if:'
-        if(context.eventName == "pull_request"){
+        if(context.eventName == "pull_request" && process.env.SKIP_PR_DEPLOY){
           console.log("Pull request. not triggering deployment")
         }else{
           console.log("Not a pull request. Triggering deployment")
